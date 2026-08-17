@@ -161,6 +161,10 @@ testImplementation 'org.testcontainers:testcontainers-postgresql:2.0.2'
 testImplementation 'org.testcontainers:testcontainers'
 testImplementation 'org.testcontainers:postgresql'
 testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+compileOnly 'org.projectlombok:lombok:1.18.34'
+annotationProcessor 'org.projectlombok:lombok:1.18.34'
+testCompileOnly 'org.projectlombok:lombok:1.18.34'
+testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 
 
 }
