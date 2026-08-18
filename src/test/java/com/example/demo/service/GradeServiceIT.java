@@ -61,21 +61,7 @@ class GradeServiceIT extends FacadeIT {
   @BeforeEach
   void setUp() {
     jdbcTemplate = new JdbcTemplate(dataSource);
-
-    jdbcTemplate.update("DELETE FROM course_unit_course");
-    courseUnitRepository.deleteAll();
-    jdbcTemplate.update("DELETE FROM semester");
-    jdbcTemplate.update("DELETE FROM academic_year");
-    gradeRepository.deleteAll();
-    teachingAssignmentRepository.deleteAll();
-    examRepository.deleteAll();
-    teacherRepository.deleteAll();
-    studentRepository.deleteAll();
-    adminRepository.deleteAll();
-    courseRepository.deleteAll();
-
-    jdbcTemplate.update("DELETE FROM \"group\"");
-    jdbcTemplate.update("DELETE FROM cohort");
+    cleanDatabase();
   }
 
   @Test
@@ -189,38 +175,30 @@ class GradeServiceIT extends FacadeIT {
     createGroupAndAssignment(teacher, course);
 
     var grade =
-        new Grade(
-            null,
-            student.getMatricule(),
-            exam.getId(),
-            new BigDecimal("14.50"),
-            null,
-            null,
-            null,
-            null);
+            new Grade(
+                    null,
+                    student.getMatricule(),
+                    exam.getId(),
+                    new BigDecimal("14.50"),
+                    null,
+                    null,
+                    null,
+                    null);
 
     var result = gradeService.createGradeByTeacher(grade, teacher.getId());
 
     assertThat(result.id()).isNotNull();
-
     assertThat(result.studentMatricule()).isEqualTo(student.getMatricule());
-
     assertThat(result.examId()).isEqualTo(exam.getId());
-
     assertThat(result.value()).isEqualByComparingTo("14.50");
-
     assertThat(result.teacherMatricule()).isEqualTo(teacher.getMatricule());
-
     assertThat(result.adminId()).isNull();
-
     assertThat(result.enteredAt()).isNotNull();
 
     var saved = gradeRepository.findById(result.id()).orElseThrow();
 
     assertThat(saved.getStudentMatricule()).isEqualTo(student.getMatricule());
-
     assertThat(saved.getTeacherMatricule()).isEqualTo(teacher.getMatricule());
-
     assertThat(saved.getAdminId()).isNull();
   }
 
@@ -232,38 +210,30 @@ class GradeServiceIT extends FacadeIT {
     var admin = createAdmin();
 
     var grade =
-        new Grade(
-            null,
-            student.getMatricule(),
-            exam.getId(),
-            new BigDecimal("17.00"),
-            null,
-            null,
-            null,
-            null);
+            new Grade(
+                    null,
+                    student.getMatricule(),
+                    exam.getId(),
+                    new BigDecimal("17.00"),
+                    null,
+                    null,
+                    null,
+                    null);
 
     var result = gradeService.createGradeByAdmin(grade, admin.getId());
 
     assertThat(result.id()).isNotNull();
-
     assertThat(result.studentMatricule()).isEqualTo(student.getMatricule());
-
     assertThat(result.examId()).isEqualTo(exam.getId());
-
     assertThat(result.value()).isEqualByComparingTo("17.00");
-
     assertThat(result.teacherMatricule()).isNull();
-
     assertThat(result.adminId()).isEqualTo(admin.getId());
-
     assertThat(result.enteredAt()).isNotNull();
 
     var saved = gradeRepository.findById(result.id()).orElseThrow();
 
     assertThat(saved.getStudentMatricule()).isEqualTo(student.getMatricule());
-
     assertThat(saved.getAdminId()).isEqualTo(admin.getId());
-
     assertThat(saved.getTeacherMatricule()).isNull();
   }
 
@@ -282,12 +252,12 @@ class GradeServiceIT extends FacadeIT {
 
     var semester = createSemester();
     var courseUnit = createCourseUnit(semester, 6);
+
     linkCourseToUnit(courseUnit, courseA, 2);
     linkCourseToUnit(courseUnit, courseB, 4);
 
     var result = gradeService.computeCourseUnitAverage(student.getMatricule(), courseUnit);
 
-    // (10 * 2 + 16 * 4) / (2 + 4) = 14.0
     assertThat(result).isEqualByComparingTo("14.0000");
   }
 
@@ -309,20 +279,22 @@ class GradeServiceIT extends FacadeIT {
 
     var courseA = createCourse();
     var examA = createExam(courseA, JExamType.FINAL_EXAM, "100.00");
+
     createTeacherGrade(student, examA, "12.00");
+
     var unitOne = createCourseUnit(semester, 10);
     linkCourseToUnit(unitOne, courseA, 10);
 
     var courseB = createCourse();
     var examB = createExam(courseB, JExamType.FINAL_EXAM, "100.00");
+
     createTeacherGrade(student, examB, "18.00");
+
     var unitTwo = createCourseUnit(semester, 20);
     linkCourseToUnit(unitTwo, courseB, 20);
 
     var result = gradeService.computeSemesterAverage(student.getMatricule(), semester);
 
-    // unitOne average = 12.0 (credits 10), unitTwo average = 18.0 (credits 20)
-    // (12 * 10 + 18 * 20) / (10 + 20) = 16.0
     assertThat(result).isEqualByComparingTo("16.0000");
   }
 
@@ -338,13 +310,13 @@ class GradeServiceIT extends FacadeIT {
 
   private JStudent createStudent() {
     return studentRepository.save(
-        JStudent.builder()
-            .firstName("Student")
-            .lastName("Test")
-            .email("student-" + UUID.randomUUID() + "@test.com")
-            .password("password")
-            .matricule(generateStudentMatricule())
-            .build());
+            JStudent.builder()
+                    .firstName("Student")
+                    .lastName("Test")
+                    .email("student-" + UUID.randomUUID() + "@test.com")
+                    .password("password")
+                    .matricule(generateStudentMatricule())
+                    .build());
   }
 
   private String generateStudentMatricule() {
@@ -355,92 +327,98 @@ class GradeServiceIT extends FacadeIT {
 
   private JTeacher createTeacher() {
     return teacherRepository.save(
-        JTeacher.builder()
-            .firstName("Teacher")
-            .lastName("Test")
-            .email("teacher-" + UUID.randomUUID() + "@test.com")
-            .password("password")
-            .address("Antananarivo")
-            .matricule("TCH" + ThreadLocalRandom.current().nextInt(10000, 100000))
-            .build());
+            JTeacher.builder()
+                    .firstName("Teacher")
+                    .lastName("Test")
+                    .email("teacher-" + UUID.randomUUID() + "@test.com")
+                    .password("password")
+                    .address("Antananarivo")
+                    .matricule("TCH" + ThreadLocalRandom.current().nextInt(10000, 100000))
+                    .build());
   }
 
   private JAdmin createAdmin() {
     return adminRepository.save(
-        JAdmin.builder()
-            .firstName("Admin")
-            .lastName("Test")
-            .email("admin-" + UUID.randomUUID() + "@test.com")
-            .password("password")
-            .address("Antananarivo")
-            .build());
+            JAdmin.builder()
+                    .firstName("Admin")
+                    .lastName("Test")
+                    .email("admin-" + UUID.randomUUID() + "@test.com")
+                    .password("password")
+                    .address("Antananarivo")
+                    .build());
   }
 
   private JCourse createCourse() {
     return courseRepository.save(
-        JCourse.builder()
-            .reference("COURSE-" + UUID.randomUUID().toString().substring(0, 8))
-            .title("Test Course")
-            .coefficient(new BigDecimal("1.00"))
-            .build());
+            JCourse.builder()
+                    .reference("COURSE-" + UUID.randomUUID().toString().substring(0, 8))
+                    .title("Test Course")
+                    .coefficient(new BigDecimal("1.00"))
+                    .build());
   }
 
   private JExam createExam(JCourse course, JExamType type, String weighting) {
-
     return examRepository.save(
-        JExam.builder()
-            .courseId(course.getId())
-            .type(type)
-            .examDate(LocalDateTime.now())
-            .weighting(new BigDecimal(weighting))
-            .build());
+            JExam.builder()
+                    .courseId(course.getId())
+                    .type(type)
+                    .examDate(LocalDateTime.now())
+                    .weighting(new BigDecimal(weighting))
+                    .build());
   }
 
   private JGrade createTeacherGrade(JStudent student, JExam exam, String value) {
-
     return createTeacherGrade(student, exam, value, createTeacher());
   }
 
-  private JGrade createTeacherGrade(JStudent student, JExam exam, String value, JTeacher teacher) {
+  private JGrade createTeacherGrade(
+          JStudent student, JExam exam, String value, JTeacher teacher) {
 
     return gradeRepository.save(
-        JGrade.builder()
-            .studentMatricule(student.getMatricule())
-            .examId(exam.getId())
-            .value(new BigDecimal(value))
-            .enteredAt(LocalDateTime.now())
-            .teacherMatricule(teacher.getMatricule())
-            .adminId(null)
-            .build());
+            JGrade.builder()
+                    .studentMatricule(student.getMatricule())
+                    .examId(exam.getId())
+                    .value(new BigDecimal(value))
+                    .enteredAt(LocalDateTime.now())
+                    .teacherMatricule(teacher.getMatricule())
+                    .adminId(null)
+                    .build());
   }
 
   private JGroup createGroup() {
     var cohortId = UUID.randomUUID();
 
-    jdbcTemplate.update("INSERT INTO cohort (id, entry_year) VALUES (?, ?)", cohortId, 2026);
+    jdbcTemplate.update(
+            "INSERT INTO cohort (id, entry_year) VALUES (?, ?)",
+            cohortId,
+            2026);
 
     return new JGroup();
   }
 
-  private JTeachingAssignment createGroupAndAssignment(JTeacher teacher, JCourse course) {
+  private JTeachingAssignment createGroupAndAssignment(
+          JTeacher teacher, JCourse course) {
 
     var cohortId = UUID.randomUUID();
     var groupId = UUID.randomUUID();
 
-    jdbcTemplate.update("INSERT INTO cohort (id, entry_year) VALUES (?, ?)", cohortId, 2026);
+    jdbcTemplate.update(
+            "INSERT INTO cohort (id, entry_year) VALUES (?, ?)",
+            cohortId,
+            2026);
 
     jdbcTemplate.update(
-        "INSERT INTO \"group\" (id, reference, cohort_id) VALUES (?, ?, ?)",
-        groupId,
-        "GRP-" + UUID.randomUUID().toString().substring(0, 8),
-        cohortId);
+            "INSERT INTO \"group\" (id, reference, cohort_id) VALUES (?, ?, ?)",
+            groupId,
+            "GRP-" + UUID.randomUUID().toString().substring(0, 8),
+            cohortId);
 
     return teachingAssignmentRepository.save(
-        JTeachingAssignment.builder()
-            .teacherId(teacher.getId())
-            .courseId(course.getId())
-            .groupId(groupId)
-            .build());
+            JTeachingAssignment.builder()
+                    .teacherId(teacher.getId())
+                    .courseId(course.getId())
+                    .groupId(groupId)
+                    .build());
   }
 
   private UUID createSemester() {
@@ -448,39 +426,47 @@ class GradeServiceIT extends FacadeIT {
     var academicYearId = UUID.randomUUID();
     var semesterId = UUID.randomUUID();
 
-    jdbcTemplate.update("INSERT INTO cohort (id, entry_year) VALUES (?, ?)", cohortId, 2027);
+    jdbcTemplate.update(
+            "INSERT INTO cohort (id, entry_year) VALUES (?, ?)",
+            cohortId,
+            2027);
 
     jdbcTemplate.update(
-        "INSERT INTO academic_year (id, name, start_year, end_year) VALUES (?, ?, ?, ?)",
-        academicYearId,
-        "AY-" + UUID.randomUUID().toString().substring(0, 6),
-        2026,
-        2027);
+            "INSERT INTO academic_year (id, name, start_year, end_year) VALUES (?, ?, ?, ?)",
+            academicYearId,
+            "AY-" + UUID.randomUUID().toString().substring(0, 6),
+            2026,
+            2027);
 
     jdbcTemplate.update(
-        "INSERT INTO semester (id, number, cohort_id, academic_year_id) VALUES (?, ?, ?, ?)",
-        semesterId,
-        1,
-        cohortId,
-        academicYearId);
+            "INSERT INTO semester (id, number, cohort_id, academic_year_id) VALUES (?, ?, ?, ?)",
+            semesterId,
+            1,
+            cohortId,
+            academicYearId);
 
     return semesterId;
   }
 
   private UUID createCourseUnit(UUID semesterId, int credits) {
     return courseUnitRepository
-        .save(
-            com.example.demo.entity.JCourseUnit.builder()
-                .code("CU-" + UUID.randomUUID().toString().substring(0, 8))
-                .name("Test Course Unit")
-                .credits(credits)
-                .semesterId(semesterId)
-                .build())
-        .getId();
+            .save(
+                    com.example.demo.entity.JCourseUnit.builder()
+                            .code("CU-" + UUID.randomUUID().toString().substring(0, 8))
+                            .name("Test Course Unit")
+                            .credits(credits)
+                            .semesterId(semesterId)
+                            .build())
+            .getId();
   }
 
-  private void linkCourseToUnit(UUID courseUnitId, JCourse course, int credits) {
+  private void linkCourseToUnit(
+          UUID courseUnitId, JCourse course, int credits) {
+
     courseUnitCourseRepository.save(
-        new com.example.demo.entity.JCourseUnitCourse(courseUnitId, course.getId(), credits));
+            new com.example.demo.entity.JCourseUnitCourse(
+                    courseUnitId,
+                    course.getId(),
+                    credits));
   }
 }

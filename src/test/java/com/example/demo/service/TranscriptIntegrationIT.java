@@ -33,13 +33,21 @@ import org.springframework.jdbc.core.JdbcTemplate;
 class TranscriptIntegrationIT extends FacadeIT {
 
   @Autowired private GradeService gradeService;
+
   @Autowired private GradeRepository gradeRepository;
+
   @Autowired private ExamRepository examRepository;
+
   @Autowired private CourseRepository courseRepository;
+
   @Autowired private CourseUnitRepository courseUnitRepository;
+
   @Autowired private CourseUnitCourseRepository courseUnitCourseRepository;
+
   @Autowired private StudentRepository studentRepository;
+
   @Autowired private TeacherRepository teacherRepository;
+
   @Autowired private DataSource dataSource;
 
   private JdbcTemplate jdbcTemplate;
@@ -47,107 +55,176 @@ class TranscriptIntegrationIT extends FacadeIT {
   @BeforeEach
   void setUp() {
     jdbcTemplate = new JdbcTemplate(dataSource);
-
-    jdbcTemplate.update("DELETE FROM course_unit_course");
-    courseUnitRepository.deleteAll();
-    jdbcTemplate.update("DELETE FROM semester");
-    jdbcTemplate.update("DELETE FROM academic_year");
-    gradeRepository.deleteAll();
-    examRepository.deleteAll();
-    teacherRepository.deleteAll();
-    studentRepository.deleteAll();
-    courseRepository.deleteAll();
-    jdbcTemplate.update("DELETE FROM \"group\"");
-    jdbcTemplate.update("DELETE FROM cohort");
+    cleanDatabase();
   }
 
   @Test
   void computeSemesterAverage_shouldReflectStudentGrades() {
-    var student = createStudent("Herimamy", "Fenohasina");
+    var student =
+            createStudent(
+                    "Herimamy",
+                    "Fenohasina");
+
     var semesterId = createSemester();
 
-    var unitProgramming = createCourseUnit(semesterId, "UE-PROG", "Programming", 10);
-    var java = createCourse("PROG101", "Java Fundamentals");
-    linkCourseToUnit(unitProgramming, java, 10);
-    gradeCourse(student, java, "15.00");
+    var unitProgramming =
+            createCourseUnit(
+                    semesterId,
+                    "UE-PROG",
+                    "Programming",
+                    10);
 
-    var semesterAverage = gradeService.computeSemesterAverage(student.getMatricule(), semesterId);
+    var java =
+            createCourse(
+                    "PROG101",
+                    "Java Fundamentals");
 
-    log.info("=== Semester average verified for student {} ===", student.getMatricule());
-    log.info("Semester average: {} / 20", semesterAverage);
+    linkCourseToUnit(
+            unitProgramming,
+            java,
+            10);
 
-    assertThat(semesterAverage).isEqualByComparingTo("15.0000");
+    gradeCourse(
+            student,
+            java,
+            "15.00");
+
+    var semesterAverage =
+            gradeService.computeSemesterAverage(
+                    student.getMatricule(),
+                    semesterId);
+
+    log.info(
+            "=== Semester average verified for student {} ===",
+            student.getMatricule());
+
+    log.info(
+            "Semester average: {} / 20",
+            semesterAverage);
+
+    assertThat(semesterAverage)
+            .isEqualByComparingTo("15.0000");
   }
 
-  private JStudent createStudent(String firstName, String lastName) {
+  private JStudent createStudent(
+          String firstName,
+          String lastName) {
+
     return studentRepository.save(
-        JStudent.builder()
-            .firstName(firstName)
-            .lastName(lastName)
-            .email(firstName.toLowerCase() + "-" + UUID.randomUUID() + "@test.com")
-            .password("password")
-            .matricule("STD26" + ThreadLocalRandom.current().nextInt(100000, 1000000))
-            .build());
+            JStudent.builder()
+                    .firstName(firstName)
+                    .lastName(lastName)
+                    .email(
+                            firstName.toLowerCase()
+                                    + "-"
+                                    + UUID.randomUUID()
+                                    + "@test.com")
+                    .password("password")
+                    .matricule(
+                            "STD26"
+                                    + ThreadLocalRandom.current()
+                                    .nextInt(100000, 1000000))
+                    .build());
   }
 
-  private JCourse createCourse(String reference, String title) {
+  private JCourse createCourse(
+          String reference,
+          String title) {
+
     return courseRepository.save(
-        JCourse.builder()
-            .reference(reference + "-" + UUID.randomUUID().toString().substring(0, 4))
-            .title(title)
-            .coefficient(new BigDecimal("1.00"))
-            .build());
+            JCourse.builder()
+                    .reference(
+                            reference
+                                    + "-"
+                                    + UUID.randomUUID()
+                                    .toString()
+                                    .substring(0, 4))
+                    .title(title)
+                    .coefficient(
+                            new BigDecimal("1.00"))
+                    .build());
   }
 
-  private UUID createCourseUnit(UUID semesterId, String code, String name, int credits) {
+  private UUID createCourseUnit(
+          UUID semesterId,
+          String code,
+          String name,
+          int credits) {
+
     return courseUnitRepository
-        .save(
-            JCourseUnit.builder()
-                .code(code + "-" + UUID.randomUUID().toString().substring(0, 4))
-                .name(name)
-                .credits(credits)
-                .semesterId(semesterId)
-                .build())
-        .getId();
+            .save(
+                    JCourseUnit.builder()
+                            .code(
+                                    code
+                                            + "-"
+                                            + UUID.randomUUID()
+                                            .toString()
+                                            .substring(0, 4))
+                            .name(name)
+                            .credits(credits)
+                            .semesterId(semesterId)
+                            .build())
+            .getId();
   }
 
-  private void linkCourseToUnit(UUID courseUnitId, JCourse course, int credits) {
-    courseUnitCourseRepository.save(new JCourseUnitCourse(courseUnitId, course.getId(), credits));
+  private void linkCourseToUnit(
+          UUID courseUnitId,
+          JCourse course,
+          int credits) {
+
+    courseUnitCourseRepository.save(
+            new JCourseUnitCourse(
+                    courseUnitId,
+                    course.getId(),
+                    credits));
   }
 
-  private void gradeCourse(JStudent student, JCourse course, String value) {
+  private void gradeCourse(
+          JStudent student,
+          JCourse course,
+          String value) {
+
     var exam =
-        examRepository.save(
-            JExam.builder()
-                .courseId(course.getId())
-                .type(JExamType.FINAL_EXAM)
-                .examDate(LocalDateTime.now())
-                .weighting(new BigDecimal("100.00"))
-                .build());
+            examRepository.save(
+                    JExam.builder()
+                            .courseId(course.getId())
+                            .type(JExamType.FINAL_EXAM)
+                            .examDate(LocalDateTime.now())
+                            .weighting(
+                                    new BigDecimal("100.00"))
+                            .build());
 
     var teacher = createTeacher();
 
     gradeRepository.save(
-        JGrade.builder()
-            .studentMatricule(student.getMatricule())
-            .examId(exam.getId())
-            .value(new BigDecimal(value))
-            .enteredAt(LocalDateTime.now())
-            .teacherMatricule(teacher.getMatricule())
-            .adminId(null)
-            .build());
+            JGrade.builder()
+                    .studentMatricule(
+                            student.getMatricule())
+                    .examId(exam.getId())
+                    .value(new BigDecimal(value))
+                    .enteredAt(LocalDateTime.now())
+                    .teacherMatricule(
+                            teacher.getMatricule())
+                    .adminId(null)
+                    .build());
   }
 
   private JTeacher createTeacher() {
     return teacherRepository.save(
-        JTeacher.builder()
-            .firstName("Teacher")
-            .lastName("Test")
-            .email("teacher-" + UUID.randomUUID() + "@test.com")
-            .password("password")
-            .address("Antananarivo")
-            .matricule("TCH" + ThreadLocalRandom.current().nextInt(10000, 100000))
-            .build());
+            JTeacher.builder()
+                    .firstName("Teacher")
+                    .lastName("Test")
+                    .email(
+                            "teacher-"
+                                    + UUID.randomUUID()
+                                    + "@test.com")
+                    .password("password")
+                    .address("Antananarivo")
+                    .matricule(
+                            "TCH"
+                                    + ThreadLocalRandom.current()
+                                    .nextInt(10000, 100000))
+                    .build());
   }
 
   private UUID createSemester() {
@@ -155,21 +232,34 @@ class TranscriptIntegrationIT extends FacadeIT {
     var academicYearId = UUID.randomUUID();
     var semesterId = UUID.randomUUID();
 
-    jdbcTemplate.update("INSERT INTO cohort (id, entry_year) VALUES (?, ?)", cohortId, 2027);
+    jdbcTemplate.update(
+            "INSERT INTO cohort (id, entry_year) VALUES (?, ?)",
+            cohortId,
+            2027);
 
     jdbcTemplate.update(
-        "INSERT INTO academic_year (id, name, start_year, end_year) VALUES (?, ?, ?, ?)",
-        academicYearId,
-        "AY-" + UUID.randomUUID().toString().substring(0, 6),
-        2026,
-        2027);
+            """
+            INSERT INTO academic_year
+                (id, name, start_year, end_year)
+            VALUES (?, ?, ?, ?)
+            """,
+            academicYearId,
+            "AY-" + UUID.randomUUID()
+                    .toString()
+                    .substring(0, 6),
+            2026,
+            2027);
 
     jdbcTemplate.update(
-        "INSERT INTO semester (id, number, cohort_id, academic_year_id) VALUES (?, ?, ?, ?)",
-        semesterId,
-        1,
-        cohortId,
-        academicYearId);
+            """
+            INSERT INTO semester
+                (id, number, cohort_id, academic_year_id)
+            VALUES (?, ?, ?, ?)
+            """,
+            semesterId,
+            1,
+            cohortId,
+            academicYearId);
 
     return semesterId;
   }
