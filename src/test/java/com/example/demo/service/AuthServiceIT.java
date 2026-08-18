@@ -41,20 +41,16 @@ class AuthServiceIT extends FacadeIT {
   @Test
   void login_shouldAuthenticateAdminSuccessfully() {
     var admin =
-            adminRepository.save(
-                    JAdmin.builder()
-                            .firstName("Admin")
-                            .lastName("Test")
-                            .email("admin-" + UUID.randomUUID() + "@test.com")
-                            .password(passwordEncoder.encode("password123"))
-                            .address("Antananarivo")
-                            .build());
+        adminRepository.save(
+            JAdmin.builder()
+                .firstName("Admin")
+                .lastName("Test")
+                .email("admin-" + UUID.randomUUID() + "@test.com")
+                .password(passwordEncoder.encode("password123"))
+                .address("Antananarivo")
+                .build());
 
-    var request =
-            LoginRequestDTO.builder()
-                    .email(admin.getEmail())
-                    .password("password123")
-                    .build();
+    var request = LoginRequestDTO.builder().email(admin.getEmail()).password("password123").build();
 
     var result = authService.login(request);
 
@@ -70,25 +66,18 @@ class AuthServiceIT extends FacadeIT {
   @Test
   void login_shouldAuthenticateStudentSuccessfully() {
     var student =
-            studentRepository.save(
-                    JStudent.builder()
-                            .firstName("Student")
-                            .lastName("Test")
-                            .email("student-" + UUID.randomUUID() + "@test.com")
-                            .password(passwordEncoder.encode("password123"))
-                            .matricule(
-                                    "STD25"
-                                            + UUID.randomUUID()
-                                            .toString()
-                                            .replaceAll("\\D", "")
-                                            .substring(0, 5))
-                            .build());
+        studentRepository.save(
+            JStudent.builder()
+                .firstName("Student")
+                .lastName("Test")
+                .email("student-" + UUID.randomUUID() + "@test.com")
+                .password(passwordEncoder.encode("password123"))
+                .matricule(
+                    "STD25" + UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 5))
+                .build());
 
     var request =
-            LoginRequestDTO.builder()
-                    .email(student.getEmail())
-                    .password("password123")
-                    .build();
+        LoginRequestDTO.builder().email(student.getEmail()).password("password123").build();
 
     var result = authService.login(request);
 
@@ -104,26 +93,19 @@ class AuthServiceIT extends FacadeIT {
   @Test
   void login_shouldAuthenticateTeacherSuccessfully() {
     var teacher =
-            teacherRepository.save(
-                    JTeacher.builder()
-                            .firstName("Teacher")
-                            .lastName("Test")
-                            .email("teacher-" + UUID.randomUUID() + "@test.com")
-                            .password(passwordEncoder.encode("password123"))
-                            .address("Antananarivo")
-                            .matricule(
-                                    "TCH"
-                                            + UUID.randomUUID()
-                                            .toString()
-                                            .replaceAll("\\D", "")
-                                            .substring(0, 6))
-                            .build());
+        teacherRepository.save(
+            JTeacher.builder()
+                .firstName("Teacher")
+                .lastName("Test")
+                .email("teacher-" + UUID.randomUUID() + "@test.com")
+                .password(passwordEncoder.encode("password123"))
+                .address("Antananarivo")
+                .matricule(
+                    "TCH" + UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 6))
+                .build());
 
     var request =
-            LoginRequestDTO.builder()
-                    .email(teacher.getEmail())
-                    .password("password123")
-                    .build();
+        LoginRequestDTO.builder().email(teacher.getEmail()).password("password123").build();
 
     var result = authService.login(request);
 
@@ -139,89 +121,72 @@ class AuthServiceIT extends FacadeIT {
   @Test
   void login_shouldRejectUnknownEmail() {
     var request =
-            LoginRequestDTO.builder()
-                    .email("unknown-" + UUID.randomUUID() + "@test.com")
-                    .password("password123")
-                    .build();
+        LoginRequestDTO.builder()
+            .email("unknown-" + UUID.randomUUID() + "@test.com")
+            .password("password123")
+            .build();
 
     assertThatThrownBy(() -> authService.login(request))
-            .isInstanceOf(InvalidCredentialsException.class);
+        .isInstanceOf(InvalidCredentialsException.class);
   }
 
   @Test
   void login_shouldRejectIncorrectAdminPassword() {
     var admin =
-            adminRepository.save(
-                    JAdmin.builder()
-                            .firstName("Admin")
-                            .lastName("Test")
-                            .email("admin-" + UUID.randomUUID() + "@test.com")
-                            .password(passwordEncoder.encode("correctPassword"))
-                            .address("Antananarivo")
-                            .build());
+        adminRepository.save(
+            JAdmin.builder()
+                .firstName("Admin")
+                .lastName("Test")
+                .email("admin-" + UUID.randomUUID() + "@test.com")
+                .password(passwordEncoder.encode("correctPassword"))
+                .address("Antananarivo")
+                .build());
 
     var request =
-            LoginRequestDTO.builder()
-                    .email(admin.getEmail())
-                    .password("wrongPassword")
-                    .build();
+        LoginRequestDTO.builder().email(admin.getEmail()).password("wrongPassword").build();
 
     assertThatThrownBy(() -> authService.login(request))
-            .isInstanceOf(InvalidCredentialsException.class);
+        .isInstanceOf(InvalidCredentialsException.class);
   }
 
   @Test
   void login_shouldRejectIncorrectStudentPassword() {
     var student =
-            studentRepository.save(
-                    JStudent.builder()
-                            .firstName("Student")
-                            .lastName("Test")
-                            .email("student-" + UUID.randomUUID() + "@test.com")
-                            .password(passwordEncoder.encode("correctPassword"))
-                            .matricule(
-                                    "STD25"
-                                            + UUID.randomUUID()
-                                            .toString()
-                                            .replaceAll("\\D", "")
-                                            .substring(0, 5))
-                            .build());
+        studentRepository.save(
+            JStudent.builder()
+                .firstName("Student")
+                .lastName("Test")
+                .email("student-" + UUID.randomUUID() + "@test.com")
+                .password(passwordEncoder.encode("correctPassword"))
+                .matricule(
+                    "STD25" + UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 5))
+                .build());
 
     var request =
-            LoginRequestDTO.builder()
-                    .email(student.getEmail())
-                    .password("wrongPassword")
-                    .build();
+        LoginRequestDTO.builder().email(student.getEmail()).password("wrongPassword").build();
 
     assertThatThrownBy(() -> authService.login(request))
-            .isInstanceOf(InvalidCredentialsException.class);
+        .isInstanceOf(InvalidCredentialsException.class);
   }
 
   @Test
   void login_shouldRejectIncorrectTeacherPassword() {
     var teacher =
-            teacherRepository.save(
-                    JTeacher.builder()
-                            .firstName("Teacher")
-                            .lastName("Test")
-                            .email("teacher-" + UUID.randomUUID() + "@test.com")
-                            .password(passwordEncoder.encode("correctPassword"))
-                            .address("Antananarivo")
-                            .matricule(
-                                    "TCH"
-                                            + UUID.randomUUID()
-                                            .toString()
-                                            .replaceAll("\\D", "")
-                                            .substring(0, 6))
-                            .build());
+        teacherRepository.save(
+            JTeacher.builder()
+                .firstName("Teacher")
+                .lastName("Test")
+                .email("teacher-" + UUID.randomUUID() + "@test.com")
+                .password(passwordEncoder.encode("correctPassword"))
+                .address("Antananarivo")
+                .matricule(
+                    "TCH" + UUID.randomUUID().toString().replaceAll("\\D", "").substring(0, 6))
+                .build());
 
     var request =
-            LoginRequestDTO.builder()
-                    .email(teacher.getEmail())
-                    .password("wrongPassword")
-                    .build();
+        LoginRequestDTO.builder().email(teacher.getEmail()).password("wrongPassword").build();
 
     assertThatThrownBy(() -> authService.login(request))
-            .isInstanceOf(InvalidCredentialsException.class);
+        .isInstanceOf(InvalidCredentialsException.class);
   }
 }

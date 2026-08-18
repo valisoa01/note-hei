@@ -29,10 +29,9 @@ public class FacadeIT {
   }
 
   /**
-   * Nettoyage complet et centralisé de la base, dans l'ordre FK correct
-   * (tables enfants avant tables parentes). Utilisé par toutes les
-   * classes IT pour éviter les conflits FK entre classes tournant
-   * contre la même base.
+   * Nettoyage complet et centralisé de la base, dans l'ordre FK correct (tables enfants avant
+   * tables parentes). Utilisé par toutes les classes IT pour éviter les conflits FK entre classes
+   * tournant contre la même base.
    */
   protected void cleanDatabase() {
     var jdbc = jdbcTemplate();
