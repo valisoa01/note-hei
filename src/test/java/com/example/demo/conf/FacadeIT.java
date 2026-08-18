@@ -12,11 +12,11 @@ import org.springframework.test.context.DynamicPropertySource;
 @PojaGenerated
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @Slf4j
-public class FacadeIT {
+public class FacadeIT extends PostgresConf {
 
   @SneakyThrows
   @DynamicPropertySource
-  static void configureProperties(DynamicPropertyRegistry registry) {
+  public static void configureProperties(DynamicPropertyRegistry registry) {
 
     new EventConf().configureProperties(registry);
     new BucketConf().configureProperties(registry);
