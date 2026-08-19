@@ -40,7 +40,7 @@ configurations {
 
 
 test {
-    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+    maxParallelForks = 1 // forced sequential: shared Neon DB across IT classes causes FK races otherwise
     useJUnitPlatform()
     finalizedBy jacocoTestCoverageVerification
 }
