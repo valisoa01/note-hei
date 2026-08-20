@@ -64,10 +64,6 @@ class SemesterAverageSimulationIT extends FacadeIT {
 
     var semesterId = createSemester();
 
-    // ============================================================
-    // Course unit 1 : Programming - 10 credits
-    // ============================================================
-
     var unitProgramming = createCourseUnit(semesterId, "UE-PROG", "Programming", 10);
 
     var java = createCourse("PROG101", "Java Fundamentals");

@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.endpoint.event.EventProducer;
+import com.example.demo.endpoint.event.model.TranscriptRequestedEvent;
 import com.example.demo.entity.JTranscript;
 import com.example.demo.mapper.TranscriptMapper;
 import com.example.demo.model.Transcript;
@@ -18,14 +20,28 @@ public class TranscriptService {
   private final TranscriptRepository transcriptRepository;
   private final TranscriptValidator transcriptValidator;
   private final TranscriptMapper transcriptMapper;
+  private final EventProducer<TranscriptRequestedEvent> eventProducer;
 
   public Transcript requestTranscript(
       UUID studentId, UUID semesterId, UUID requesterId, boolean requesterIsAdmin) {
+
     transcriptValidator.validateRequesterCanAccess(requesterId, requesterIsAdmin, studentId);
 
     var entity =
         JTranscript.builder().studentId(studentId).semesterId(semesterId).status("PENDING").build();
-    return transcriptMapper.toDto(transcriptRepository.save(entity));
+
+    var savedEntity = transcriptRepository.save(entity);
+
+    var event =
+        TranscriptRequestedEvent.builder()
+            .transcriptId(savedEntity.getId())
+            .studentId(studentId)
+            .semesterId(semesterId)
+            .build();
+
+    eventProducer.accept(List.of(event));
+
+    return transcriptMapper.toDto(savedEntity);
   }
 
   public List<Transcript> getTranscriptsForStudent(UUID studentId) {
@@ -39,10 +55,12 @@ public class TranscriptService {
         transcriptRepository
             .findById(transcriptId)
             .orElseThrow(
-                () -> new IllegalArgumentException("Relevé introuvable : " + transcriptId));
+                () -> new IllegalArgumentException("Transcript not found: " + transcriptId));
+
     entity.setS3Url(s3Url);
     entity.setStatus("GENERATED");
     entity.setGeneratedAt(LocalDateTime.now());
+
     return transcriptMapper.toDto(transcriptRepository.save(entity));
   }
 }
